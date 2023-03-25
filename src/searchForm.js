@@ -7,11 +7,10 @@ export async function searchCardImg(searchQueryInput) {
     orientation: 'horizontal',
     safesearch: 'true',
  };
- const responce = await axios.get(BASE_URL,{params});
- const data = await responce;
- return data;
-}
-
+  const responce = await axios.get(BASE_URL,{params});
+  const data = await responce;
+    return data;
+};
 
 
 

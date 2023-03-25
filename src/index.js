@@ -11,20 +11,32 @@ const buttonRef = document.querySelector('.load-more');
 
 let searchQueryInput = '';
 
+function cleanInterface(ref) {
+ref.innerHTML = '';
+}
+
 inputRef.addEventListener('input', (e) =>{
 e.preventDefault();
   searchQueryInput = e.currentTarget.value;
+  if(searchQueryInput === ''){
+    cleanInterface(divRef);
+  }
 });
 
 formRef.addEventListener('submit', getImgCardOnServ)
-
 
 function getImgCardOnServ(e) {
   e.preventDefault();
   console.log(searchQueryInput)
   searchCardImg(searchQueryInput)
-  .then(({data}) => renderImgCard(data))
-  .catch(error => console.log(error));
+  .then(({data}) => {
+      if(data.hits.length !== 0){
+        renderImgCard(data.hits)
+      }
+      return;
+  })
+  .catch(
+  Notiflix.Notify.warning('Sorry, there are no images matching your search query. Please try again.'));
 }
 function renderImgCard(data){
   console.log(data)
@@ -36,19 +48,19 @@ function addRenderImgCard(data){
   console.log(data);
   return data.map(({webformatURL, largeImageURL,tags,likes,views,comments, downloads}) => 
     `<div class="photo-card">
-    <img src="${webformatURL}" alt="${tags}" loading="lazy" />
+    <img src="${webformatURL}" alt="${tags} width="70" loading="lazy" />
     <div class="info">
       <p class="info-item">
-        <b>${likes}</b>
+        <b>Likes: ${likes}</b>
       </p>
       <p class="info-item">
-        <b>${views}</b>
+        <b>Views: ${views}</b>
       </p>
       <p class="info-item">
-        <b>C${comments}</b>
+        <b>Comments: ${comments}</b>
       </p>
       <p class="info-item">
-        <b>${downloads}</b>
+        <b>Downloads: ${downloads}</b>
       </p>
     </div>
   </div>`
