@@ -46,10 +46,10 @@ function getImgCardOnServ(e) {
   searchCardImg(searchQueryInput, page, per_page)
   .then(({data}) => {
     if (data.totalHits === 0) {
+      buttonRef.className = "load-more hiden";
       cleanInterface(divRef)
     Notiflix.Notify.failure(
-      'Sorry, there are no images matching your search query. Please try again.',
-    );
+      'Sorry, there are no images matching your search query. Please try again.',);
   } else {
     renderImgCard(data.hits);
     simpleLightBox = new SimpleLightbox('.gallery a').refresh();
