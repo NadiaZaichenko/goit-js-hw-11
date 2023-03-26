@@ -47,6 +47,7 @@ function getImgCardOnServ(e) {
     if (data.totalHits === 0) {
       buttonRef.className = "load-more hiden";
       cleanInterface(divRef)
+      buttonRef.classList.add('is-hidden');
     Notiflix.Notify.failure(
       'Sorry, there are no images matching your search query. Please try again.',);
   } else {
