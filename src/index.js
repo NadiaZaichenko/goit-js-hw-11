@@ -11,7 +11,6 @@ const divRef = document.querySelector('.gallery');
 const buttonRef = document.querySelector('.load-more');
 
 
-
 let simpleLightBox;
 let searchQueryInput = '';
 let page = 1;
@@ -69,7 +68,8 @@ function showNewPage() {
    searchCardImg(searchQueryInput, page, per_page)
      .then(({data}) => {
       const totalPages = Math.ceil(data.totalHits / per_page);
-      if (page > totalPages) {
+      if (page === totalPages) {
+        buttonRef.classList.add('is-hidden');
         Notiflix.Notify.failure(
           "We're sorry, but you've reached the end of search results.",
         );
@@ -113,33 +113,3 @@ function renderImgCard(images){
 .join('');
   divRef.insertAdjacentHTML('beforeend', markup)
 };
-
-// function checkIfEndOfPage() {
-//   return (
-//     window.innerHeight + window.pageYOffset >=
-//     document.documentElement.scrollHeight
-//   );
-// }
-
-// Функція, яка виконуеться, якщо користувач дійшов до кінця сторінки
-// function showLoadMorePage() {
-//   if (checkIfEndOfPage()) {
-//     showNewPage();
-//   }
-//   // buttonRef.className = 'hiden';
-// }
-
-// Додати подію на прокручування сторінки, яка викликає функцію 
-
-// showLoadMorePage
-// window.addEventListener('scroll', showLoadMorePage);
-
-// кнопка “вгору”->
-// arrowTop.onclick = function () {
-//   window.scrollTo({ top: 0, behavior: 'smooth' });
-//   // після scrollTo відбудеться подія "scroll", тому стрілка автоматично сховається
-// };
-
-// window.addEventListener('scroll', function () {
-//   arrowTop.hidden = scrollY < document.documentElement.clientHeight;
-// });
