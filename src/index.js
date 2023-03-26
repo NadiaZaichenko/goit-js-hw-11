@@ -45,7 +45,6 @@ function getImgCardOnServ(e) {
   searchCardImg(searchQueryInput, page, per_page)
   .then(({data}) => {
     if (data.totalHits === 0) {
-      buttonRef.className = "load-more hiden";
       cleanInterface(divRef)
       buttonRef.classList.add('is-hidden');
     Notiflix.Notify.failure(
