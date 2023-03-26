@@ -1,6 +1,7 @@
 import { searchCardImg } from './searchForm';
 import Notiflix from 'notiflix';
-import axios from 'axios';
+import SimpleLightbox from 'simplelightbox';
+import 'simplelightbox/dist/simple-lightbox.min.css';
 
 
 
@@ -9,7 +10,12 @@ const inputRef = document.querySelector('[name = searchQuery]');
 const divRef = document.querySelector('.gallery');
 const buttonRef = document.querySelector('.load-more');
 
+
+
+let simpleLightBox;
 let searchQueryInput = '';
+let page = 1;
+let per_page = 40;
 
 function cleanInterface(ref) {
 ref.innerHTML = '';
@@ -25,29 +31,66 @@ e.preventDefault();
 
 formRef.addEventListener('submit', getImgCardOnServ)
 
+buttonRef.addEventListener('click', showNewPage);
+
 function getImgCardOnServ(e) {
   e.preventDefault();
-  console.log(searchQueryInput)
-  searchCardImg(searchQueryInput)
+  page = 1;
+  searchQueryInput = e.currentTarget.elements.searchQuery.value.trim();
+  divRef.innerHTML = '';
+  if( searchQueryInput === '') {
+    cleanInterface(divRef)
+    Notiflix.Notify.warning('The search string cannot be empty.');
+    return;
+  }
+  searchCardImg(searchQueryInput, page, per_page)
   .then(({data}) => {
-      if(data.hits.length !== 0){
-        renderImgCard(data.hits)
-      }
-      return;
-  })
-  .catch(
-  Notiflix.Notify.warning('Sorry, there are no images matching your search query. Please try again.'));
+    if (data.totalHits === 0) {
+      cleanInterface(divRef)
+    Notiflix.Notify.failure(
+      'Sorry, there are no images matching your search query. Please try again.',
+    );
+  } else {
+    renderImgCard(data.hits);
+    simpleLightBox = new SimpleLightbox('.gallery a').refresh();
+    Notiflix.Notify.success(`Hooray! We found ${data.totalHits} images.`);
+    buttonRef.className = 'is-active';
+}})
+  .catch(error => console.log(error))
+  .finally(() => {
+    formRef.reset();
+  }); 
 }
-function renderImgCard(data){
-  console.log(data)
-const innerCard = addRenderImgCard(data);
-divRef.innerHTML = innerCard;
+
+function showNewPage() {
+   page += 1;
+   simpleLightBox.destroy();
+ 
+   searchCardImg(searchQueryInput, page, per_page)
+     .then(({data}) => {
+      const totalPages = Math.ceil(data.totalHits / per_page);
+      if (page > totalPages) {
+        Notiflix.Notify.failure(
+          "We're sorry, but you've reached the end of search results.",
+        );
+        return;
+      } else {
+         renderImgCard(data.hits);
+       simpleLightBox = new SimpleLightbox('.gallery a').refresh();
+      }
+})
+     .catch(error => console.log(error));
 };
 
-function addRenderImgCard(data){
-  console.log(data);
-  return data.map(({webformatURL, largeImageURL,tags,likes,views,comments, downloads}) => 
-    `<div class="photo-card">
+function renderImgCard(images){
+  if (!divRef) {
+    return;
+  }
+  const markup = images.map(image => {
+    const{webformatURL, largeImageURL,tags,likes,views,comments, downloads} = image;
+    return  `
+    <a class="gallery__link" href="${largeImageURL}">
+    <div class="photo-card">
     <img src="${webformatURL}" alt="${tags} width="70" loading="lazy" />
     <div class="info">
       <p class="info-item">
@@ -63,6 +106,40 @@ function addRenderImgCard(data){
         <b>Downloads: ${downloads}</b>
       </p>
     </div>
-  </div>`
-  ).join('');
-}
+  </div>
+  </a>
+  `;
+})
+.join('');
+  divRef.insertAdjacentHTML('beforeend', markup)
+};
+
+// function checkIfEndOfPage() {
+//   return (
+//     window.innerHeight + window.pageYOffset >=
+//     document.documentElement.scrollHeight
+//   );
+// }
+
+// Функція, яка виконуеться, якщо користувач дійшов до кінця сторінки
+// function showLoadMorePage() {
+//   if (checkIfEndOfPage()) {
+//     showNewPage();
+//   }
+//   // buttonRef.className = 'hiden';
+// }
+
+// Додати подію на прокручування сторінки, яка викликає функцію 
+
+// showLoadMorePage
+// window.addEventListener('scroll', showLoadMorePage);
+
+// кнопка “вгору”->
+// arrowTop.onclick = function () {
+//   window.scrollTo({ top: 0, behavior: 'smooth' });
+//   // після scrollTo відбудеться подія "scroll", тому стрілка автоматично сховається
+// };
+
+// window.addEventListener('scroll', function () {
+//   arrowTop.hidden = scrollY < document.documentElement.clientHeight;
+// });
