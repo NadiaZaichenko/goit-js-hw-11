@@ -32,7 +32,7 @@ formRef.addEventListener('submit', getImgCardOnServ)
 
 buttonRef.addEventListener('click', showNewPage);
 
-function getImgCardOnServ(e) {
+async function getImgCardOnServ(e) {
   e.preventDefault();
   page = 1;
   searchQueryInput = e.currentTarget.elements.searchQuery.value.trim();
@@ -42,45 +42,63 @@ function getImgCardOnServ(e) {
     Notiflix.Notify.warning('The search string cannot be empty.');
     return;
   }
-  searchCardImg(searchQueryInput, page, per_page)
-  .then(({data}) => {
+
+  try {
+    const { data } = await searchCardImg(searchQueryInput, page, per_page);
     if (data.totalHits === 0) {
       cleanInterface(divRef)
       buttonRef.classList.add('is-hidden');
-    Notiflix.Notify.failure(
-      'Sorry, there are no images matching your search query. Please try again.',);
-  } else {
-    renderImgCard(data.hits);
-    simpleLightBox = new SimpleLightbox('.gallery a').refresh();
-    Notiflix.Notify.success(`Hooray! We found ${data.totalHits} images.`);
-    buttonRef.className = 'is-active';
-}})
-  .catch(error => console.log(error))
-  .finally(() => {
+      Notiflix.Notify.failure(
+        'Sorry, there are no images matching your search query. Please try again.',
+      );
+    } else {
+      renderImgCard(data.hits);
+      simpleLightBox = new SimpleLightbox('.gallery a').refresh();
+      Notiflix.Notify.success(`Hooray! We found ${data.totalHits} images.`);
+      buttonRef.className = 'is-active';
+    }
+  } catch (error) {
+    console.log(error);
+  } finally {
     formRef.reset();
-  }); 
+  }
 }
 
-function showNewPage() {
-   page += 1;
-   simpleLightBox.destroy();
- 
-   searchCardImg(searchQueryInput, page, per_page)
-     .then(({data}) => {
-      const totalPages = Math.ceil(data.totalHits / per_page);
-      if (page === totalPages) {
-        buttonRef.classList.add('is-hidden');
-        Notiflix.Notify.failure(
-          "We're sorry, but you've reached the end of search results.",
-        );
-        return;
-      } else {
-         renderImgCard(data.hits);
-       simpleLightBox = new SimpleLightbox('.gallery a').refresh();
-      }
-})
-     .catch(error => console.log(error));
-};
+async function showNewPage() {
+  page += 1;
+  simpleLightBox.destroy();
+
+  try {
+    const { data } = await searchCardImg(searchQueryInput, page, per_page);
+
+    renderImgCard(data.hits);
+
+    const totalPages = Math.ceil(data.totalHits / per_page);
+    const { height: cardHeight } = document
+      .querySelector('.gallery')
+      .firstElementChild.getBoundingClientRect();
+
+      simpleLightBox = new SimpleLightbox('.gallery a', {
+      captionsData: 'alt',
+      captionDelay: 250,
+    }).refresh();
+
+    window.scrollBy({
+      top: cardHeight * 2,
+      behavior: 'smooth',
+    });
+
+    if (page === totalPages) {
+      buttonRef.classList.add('is-hidden');
+
+      Notiflix.Notify.failure(
+        "We're sorry, but you've reached the end of search results."
+      );
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
 
 function renderImgCard(images){
   if (!divRef) {
